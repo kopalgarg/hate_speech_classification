@@ -7,6 +7,7 @@ import re
 
 # -- Tweet Preprocessing
 import nltk
+from sklearn.preprocessing import LabelEncoder
 nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('stopwords')
