@@ -2,13 +2,15 @@ import os
 import numpy as np
 import pandas as pd
 import sklearn
+import pdb
 from sklearn.model_selection import train_test_split
 from utils import *
 from baselines import *
+from bert import *
+
 # -- Vectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import HashingVectorizer
 
 # Set Data Paths
 general = "data/general"
@@ -46,6 +48,7 @@ vec_tfidf = TfidfVectorizer(min_df = 2, max_df = 0.8, use_idf = True, ngram_rang
 vec_tfidf.fit(X_train)
 X_train_tfidf = vec_tfidf.fit_transform(X_train)
 
+print("NB")
 
 # -- NB with BOW unigram
 mnb_bow = naive_bayes_model(X_train_bow, y_train)
@@ -54,6 +57,7 @@ mnb_bbow = naive_bayes_model(X_train_bbow, y_train)
 # -- NB with TF-IDF
 mnb_tfidf = naive_bayes_model(X_train_tfidf, y_train)
 
+print("DT")
 # -- DT with BOW unigram
 dt_bow = dt_model(X_train_bow, y_train)
 
@@ -62,6 +66,8 @@ dt_bbow = dt_model(X_train_bbow, y_train)
 
 # -- DT with TF-IDF
 dt_tfidf = dt_model(X_train_tfidf, y_train)
+
+print("LR")
 
 # -- LR with BOW unigram
 lr_bow = lr_model(X_train_bow, y_train)
@@ -72,6 +78,8 @@ lr_bbow = lr_model(X_train_bbow, y_train)
 # -- LR with TF-IDF
 lr_tfidf = lr_model(X_train_tfidf, y_train)
 
+print("SVM")
+
 # -- SVM with BOW unigram
 svm_bow = svm_model(X_train_bow, y_train)
 # -- SVM with BOW bigram
@@ -79,3 +87,17 @@ svm_bbow = svm_model(X_train_bbow, y_train)
 # -- SVM with TF-IDF
 svm_tfidf = svm_model(X_train_tfidf, y_train)
 
+print("XGBoost")
+
+# -- XGBoost with BOW unigram
+xgb_bow = xgboost_model(X_train_bow, y_train)
+# -- XGBoost with BOW bigram
+xgb_bbow = xgboost_model(X_train_bbow, y_train)
+# -- XGBoost with TF-IDF
+xgb_tfidf = xgboost_model(X_train_tfidf, y_train)
+
+# RNN
+
+# BERT
+
+# Explainability
