@@ -2,8 +2,11 @@ import os
 import numpy as np
 import pandas as pd
 import sklearn
-import pdb
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.utils import shuffle
+import re
+import torch
 from utils import *
 from baselines import *
 from bert import *
@@ -12,24 +15,48 @@ from bert import *
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+# -- Explainability
+import shap
+import lime
+from lime import lime_text
+from lime.lime_text import LimeTextExplainer
+
 # Set Data Paths
 general = "data/general"
 antiAsian = "data/antiAsian"
 givenDataset = "data/given_dataset"
 
-# Read in General Tweetes
-generalTweets = pd.read_csv(os.path.join(general,'train_E6oV3lV.csv'))
-generalTweets = generalTweets[['tweet', 'label']]
+dataset = 'general'
 
-# Read in Prof's Tweets
-givenTweetsB = pd.read_csv(os.path.join(givenDataset,'B_volunteer_labelled_data_20210913.csv'))
-givenTweetsA = pd.read_csv(os.path.join(givenDataset,'A_volunteer_labelled_data_20210913.csv'))
+if dataset=='general':
+    # Read in General Tweetes
+    generalTweets = pd.read_csv(os.path.join(general,'train_E6oV3lV.csv'))
+    df = generalTweets[['tweet', 'label']]
+else:
+    # Read in Provided Tweets
+    givenTweetsB = pd.read_csv(os.path.join(givenDataset,'B_volunteer_labelled_data_20210913.csv'))
+    givenTweetsA = pd.read_csv(os.path.join(givenDataset,'A_volunteer_labelled_data_20210913.csv'))
+    givenTweets = pd.concat([givenTweetsB, givenTweetsA])
+    givenTweets = shuffle(givenTweets)
+    # -- label encoding 
+    encoding = {'not stigmatizing': '0',
+            'stigmatizing - high': '1',
+            'stigmatizing - low': '1',
+            'stigmatizing - medium': '1',
+            'unknown/irrelevant': 'NA'
+           }
+    labels = ['0', '1', 'NA']
+    givenTweets['Does this tweet contain covid-related stigmatizing language against the people of Asian-descent?'].replace(encoding, inplace=True)
+    df = givenTweets[givenTweets['Does this tweet contain covid-related stigmatizing language against the people of Asian-descent?'] != 'NA']
 
+    df = df[['clean text of tweet','Does this tweet contain covid-related stigmatizing language against the people of Asian-descent?']]
+    df.columns = ['tweet', 'label']
 
-X_train, X_test, y_train, y_test = train_test_split(generalTweets['tweet'], generalTweets['label'], test_size=0.20, random_state=42)
+#df = df[1:100]
+X_train, X_test, y_train, y_test = train_test_split(df['tweet'], df['label'], test_size=0.20, random_state=42)
 
 X_train = X_train.apply(clean_tweet)
-X_test = X_test.apply(clean_tweet)
+X_test =  X_test.apply(clean_tweet)
 
 # Vectorize
 
@@ -112,3 +139,29 @@ xgb_tfidf = xgboost_model(X_train_tfidf, y_train)
 # BERT
 
 # Explainability
+
+# -- LIME
+class_names=list(generalTweets.label.unique())
+explainer = LimeTextExplainer(class_names=class_names)
+
+c = make_pipeline(vec_tfidf, xgb_tfidf)
+ls_X_train= list(X_train)
+
+idx = 6
+
+c.fit(X_train, y_train)
+
+LIME_exp = explainer.explain_instance(ls_X_train[idx], c.predict_proba)
+
+print('Document id: %d' % idx)
+print('Tweet: ', ls_X_train[idx])
+print('Probability =', c.predict_proba([ls_X_train[idx]]).round(3)[0,1])
+
+LIME_exp.show_in_notebook(text=True)
+
+# -- SHAP
+SHAP_explainer = shap.KernelExplainer(lr_bow.predict, X_train_bow[1:100])
+shap_vals = SHAP_explainer.shap_values(X_train_bow[1:5])
+colour_test = pd.DataFrame(X_train_bow[1:5].todense())
+
+shap.summary_plot(shap_vals, colour_test, feature_names=cv_unigrams.get_feature_names())
