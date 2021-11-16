@@ -3,8 +3,6 @@ import numpy as np
 import pandas as pd
 import sklearn
 from sklearn.model_selection import train_test_split
-import tensorflow as tf
-tf.test.gpu_device_name()
 import re
 import torch
 # -- Models
@@ -15,6 +13,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV
+from xgboost import XGBClassifier
 
 # -- Performance Metrics
 from sklearn.metrics import roc_curve, auc, classification_report, confusion_matrix, precision_score, recall_score,  accuracy_score, precision_recall_curve
@@ -80,3 +79,18 @@ def svm_model(feature_vector_x, feature_vector_y):
   classifier_linear = GridSearchCV(svm.SVC(), params, cv=10)
   classifier_linear.fit(feature_vector_x, feature_vector_y)
   print('train score:', accuracy_score(classifier_linear.predict(feature_vector_x), feature_vector_y))
+
+# XGBoost
+def xgboost_model(feature_vector_x, feature_vector_y):
+  xgb = XGBClassifier(random_state=42, seed=2, colsample_bytree=0.6, subsample=0.7)
+  param_grid = {
+     'xgb__n_estimators': [1, 5, 10, 50, 100, 150, 300]}
+  grid_search = GridSearchCV(estimator = xgb, param_grid = param_grid, cv = 10, 
+                             n_jobs = 1, verbose = 0, return_train_score=True)
+
+  grid_search.fit(feature_vector_x, feature_vector_y)
+  print(grid_search.best_params_)
+
+  print('train score:', accuracy_score(grid_search.predict(feature_vector_x), feature_vector_y))
+
+  return xgb
