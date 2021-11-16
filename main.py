@@ -67,6 +67,17 @@ dt_bbow = dt_model(X_train_bbow, y_train)
 # -- DT with TF-IDF
 dt_tfidf = dt_model(X_train_tfidf, y_train)
 
+print("RF")
+
+# -- RF with BOW unigram
+rf_bow = dt_model(X_train_bow, y_train)
+
+# -- RF with BOW bigram
+rf_bbow = dt_model(X_train_bbow, y_train)
+
+# -- RF with TF-IDF
+rf_tfidf = dt_model(X_train_tfidf, y_train)
+
 print("LR")
 
 # -- LR with BOW unigram

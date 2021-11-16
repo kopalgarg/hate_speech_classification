@@ -50,6 +50,16 @@ def dt_model(feature_vector_x, feature_vector_y):
   print('train score:', accuracy_score(dtclassifier.predict(feature_vector_x), feature_vector_y))
   return dtclassifier
 
+
+# RF
+def rf_model(feature_vector_x, feature_vector_y):
+  rfclassifier = DecisionTreeClassifier(criterion='entropy', max_depth=None)
+  scores = cross_val_score(rfclassifier, feature_vector_x, feature_vector_y, cv = 10)
+  rfclassifier.fit(feature_vector_x, feature_vector_y)
+  print('train score:', accuracy_score(rfclassifier.predict(feature_vector_x), feature_vector_y))
+  return rfclassifier
+
+
 # LR
 def lr_model(feature_vector_x, feature_vector_y):
   C_values = [0.001,0.01, 0.1,1,10,100]
