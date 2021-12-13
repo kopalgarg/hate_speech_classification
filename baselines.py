@@ -89,6 +89,7 @@ def svm_model(feature_vector_x, feature_vector_y):
   classifier_linear = GridSearchCV(svm.SVC(), params, cv=10)
   classifier_linear.fit(feature_vector_x, feature_vector_y)
   print('train score:', accuracy_score(classifier_linear.predict(feature_vector_x), feature_vector_y))
+  return classifier_linear
 
 # XGBoost
 def xgboost_model(feature_vector_x, feature_vector_y):
